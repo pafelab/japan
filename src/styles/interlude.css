@@ -1,0 +1,256 @@
+/* 記 Field Notes — the interlude (spec §4.3, R19): a calm, normal-flow reading page on washi between the
+   pinned scenes, laid out like a page of a printed field guide. The section is 150vh (150svh); at
+   1920×1080 and 1440×900 all of its content fits inside that, so the scroll budget of §3.1 holds. On
+   narrow screens it may grow. No texture under running text; vermilion small text only in --shu-ink. */
+
+.interlude {
+  position: relative;
+  isolation: isolate;
+  min-height: 150vh;
+  min-height: 150svh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding-block: clamp(5rem, 9.5vh, 8rem) clamp(2.5rem, 5.5vh, 5rem);
+  background: var(--washi);                 /* opaque: the WebGL canvas sits behind the page */
+  color: var(--sumi-1);
+  overflow: clip;
+}
+
+/* Komorebi on the page itself: soft maple-leaf shadows fall across the empty top corner of the sheet.
+   Decorative, masked away before it reaches any running text. */
+.fn-shade {
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: -1;
+  width: min(60vw, 60rem);
+  aspect-ratio: 900 / 460;
+  pointer-events: none;
+  -webkit-mask-image: radial-gradient(ellipse 100% 92% at 100% 0%, #000 28%, transparent 74%);
+  mask-image: radial-gradient(ellipse 100% 92% at 100% 0%, #000 28%, transparent 74%);
+}
+.fn-shade svg { width: 100%; height: 100%; transform-origin: 100% 0; }
+html[data-motion="on"] .fn-shade svg { animation: fn-sway 11s ease-in-out infinite alternate; }
+@keyframes fn-sway {
+  from { transform: rotate(0deg) translate(0, 0); }
+  to   { transform: rotate(0.9deg) translate(-8px, 5px); }
+}
+
+/* ── Page grid ─────────────────────────────────────────────────────────────── */
+.fn {
+  --fn-col-gap: clamp(1.25rem, 2.6vw, 3.25rem);
+  width: min(100% - 2 * var(--gutter), 104rem);
+  margin-inline: auto;
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: var(--fn-col-gap);
+  row-gap: clamp(2rem, 5.2vh, 4.25rem);
+  align-items: start;
+}
+.fn > * { grid-column: 1 / -1; min-width: 0; }
+.interlude p { text-wrap: pretty; }
+
+/* ── Heading ───────────────────────────────────────────────────────────────── */
+.fn-head { display: grid; gap: clamp(0.75rem, 1.8vh, 1.25rem); }
+.fn-title {
+  display: flex;
+  align-items: center;
+  gap: 0.3em;
+  font-size: var(--step-4);
+  font-weight: 400;
+  line-height: 1;
+  color: var(--sumi-2);
+}
+/* 記 as a carved seal (白文): the character left as paper in a vermilion square */
+.fn-seal {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  width: 1.1em;
+  height: 1.1em;
+  padding-bottom: 0.04em;
+  font-size: 0.84em;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--washi);
+  background: var(--shu);
+  border-radius: 0.07em 0.1em 0.06em 0.12em;
+  box-shadow: inset 0 0 0 0.045em color-mix(in srgb, var(--shu) 72%, var(--sumi-1));
+}
+.fn-lede {
+  max-width: var(--measure);
+  font-size: clamp(1.06rem, 0.95rem + 0.4vw, 1.32rem);
+  line-height: 1.6;
+  color: var(--sumi-2);
+}
+
+/* ── Shared type ───────────────────────────────────────────────────────────── */
+.fn-h3 { font-size: var(--step-2); color: var(--sumi-2); }
+.fn-k { color: var(--shu-ink); margin-right: 0.14em; }
+/* links inside running text: ink words, vermilion underline (the core routes #s01…#s06 to the scenes) */
+.fn-komorebi a, .fn-stop a {
+  color: inherit;
+  text-decoration-color: var(--shu-ink);
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 0.22em;
+  transition: color var(--dur-micro) var(--ease-expressive);
+}
+.fn-komorebi a:hover, .fn-stop a:hover { color: var(--shu-ink); }
+
+/* ── Map ───────────────────────────────────────────────────────────────────── */
+.fn-map { margin: 0; container: fnmap / inline-size; }
+.fn-map__cap {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.25rem 1.25rem;
+  margin-bottom: clamp(0.6rem, 1.4vh, 1rem);
+}
+.fn-map__cap p { flex: 1 1 18rem; max-width: var(--measure); font-size: var(--step--1); line-height: 1.5; color: var(--sumi-3); }
+.fn-map__plate { position: relative; }
+.fnm { width: 100%; height: auto; overflow: hidden; }
+.fnm--top { position: absolute; inset: 0; }
+
+.fnm text { font-family: var(--font-body); font-kerning: normal; }
+.fnm-ja, .fnm-en, .fnm-sub-t, .fnm-city__t, .fnm-inset__t {
+  paint-order: stroke;
+  stroke: #F8F6F1;
+  stroke-width: 4px;
+  stroke-linejoin: round;
+}
+.fnm-ja { font-family: var(--font-display); font-weight: 700; font-size: 20px; fill: var(--sumi-1); }
+.fnm-en { font-weight: 500; font-size: 14px; fill: var(--sumi-2); }
+.fnm-sub-t { font-size: 12.5px; fill: var(--sumi-3); }
+.fnm-city__t { font-size: 12.5px; fill: var(--sumi-3); }
+.fnm-num { font-weight: 700; font-size: 12.5px; font-variant-numeric: tabular-nums; }
+.fnm-sea { font-family: var(--font-display); font-size: 16px; letter-spacing: 0.3em; fill: var(--ai); fill-opacity: 0.66; }
+.fnm-sea-en { font-size: 11.5px; fill: var(--ai); fill-opacity: 0.72; }
+.fnm-isle { font-family: var(--font-display); font-size: 19px; letter-spacing: 0.32em; fill: var(--sumi-4); }
+.fnm-tick { font-size: 11px; fill: var(--sumi-3); font-variant-numeric: tabular-nums; }
+.fnm-inset__t { font-family: var(--font-display); font-weight: 700; font-size: 15px; fill: var(--sumi-2); }
+
+/* The route draws itself in story order as the map rises into view: a CSS scroll-driven animation,
+   only while motion is on. The static page (no JS, reduced motion, older browsers) shows it drawn. */
+@supports (animation-timeline: view()) {
+  .fn-map__plate { view-timeline: --fn-route block; }
+  html[data-motion="on"] .fnm--top { will-change: transform; }   /* its own layer: the geography never repaints */
+  html[data-motion="on"] .fnm-draw {
+    stroke-dasharray: 1 2;
+    animation: fn-draw linear both;
+    animation-timeline: --fn-route;
+    animation-range: cover 6% cover 42%;
+  }
+}
+@keyframes fn-draw { from { stroke-dashoffset: 1.02; } to { stroke-dashoffset: 0; } }
+
+/* Legend */
+.fn-legend {
+  list-style: none;
+  margin: clamp(0.7rem, 1.5vh, 1rem) 0 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1.75rem;
+  font-size: var(--step--1);
+  line-height: 1.4;
+  color: var(--sumi-2);
+}
+.fn-legend li { display: inline-flex; align-items: center; gap: 0.55rem; }
+.fn-sw { width: 2.75rem; height: 0.75rem; flex: none; overflow: visible; }
+
+/* The stops as a line diagram: only where the map is too small to carry its own labels */
+.fn-stops { display: none; list-style: none; margin: 1.5rem 0 0; padding: 0; counter-reset: fn-stop; }
+.fn-stop { position: relative; counter-increment: fn-stop; padding: 0 0 1.1rem 2.6rem; }
+.fn-stop::before {
+  content: counter(fn-stop);
+  position: absolute; left: 0; top: 0.05rem;
+  display: grid; place-items: center;
+  width: 1.7rem; height: 1.7rem; border-radius: 50%;
+  background: var(--sumi-1); color: var(--washi);
+  font-size: 0.82rem; font-weight: 700; line-height: 1;
+}
+.fn-stop::after {                           /* the leg to the next stop, styled like the map's line */
+  content: ""; position: absolute; left: calc(0.85rem - 1px); top: 2.05rem; bottom: 0.25rem;
+  border-left: 2px solid var(--sumi-2);
+}
+.fn-stop:last-child { padding-bottom: 0; }
+.fn-stop:last-child::after { display: none; }
+.fn-stop--local::after { border-left-style: dashed; }
+.fn-stop--shinkansen::after { border-left: 4px solid var(--shu); left: calc(0.85rem - 2px); }
+.fn-stop--bus::after { border-left: 3px dotted var(--matcha); left: calc(0.85rem - 1.5px); }
+.fn-stop__name { font-family: var(--font-display); font-weight: 700; font-size: var(--step-1); line-height: 1.3; color: var(--sumi-2); }
+.fn-stop__what { font-size: var(--step--1); line-height: 1.55; }
+.fn-stop__leg { margin-top: 0.3rem; font-size: var(--step--1); color: var(--sumi-3); }
+
+/* ── Komorebi ─────────────────────────────────────────────────────────────── */
+.fn-komorebi { display: grid; gap: 0.9rem; max-width: var(--measure); }
+.fn-komorebi > p:not(.fn-parts) { line-height: 1.7; }
+.fn-parts {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+  margin: 0.3rem 0 0.35rem;
+  padding: 0.85rem 0 0.9rem;
+  border-block: 1px solid var(--sumi-5);
+}
+.fn-part { display: grid; justify-items: center; gap: 0.35rem; }
+.fn-part__k { font-family: var(--font-display); font-size: var(--step-3); font-weight: 700; line-height: 1; color: var(--sumi-2); }
+.fn-part__g { font-size: var(--step--1); line-height: 1.2; color: var(--sumi-3); }
+.fn-plus { font-family: var(--font-display); font-size: var(--step-1); line-height: var(--step-3); color: var(--sumi-4); }
+
+/* ── Practical notes ──────────────────────────────────────────────────────── */
+.fn-notes {
+  --fn-note-gap: clamp(1.25rem, 2.2vw, 2.5rem);
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  column-gap: var(--fn-note-gap);
+  row-gap: 1.1rem;
+  padding-top: clamp(0.75rem, 1.6vh, 1.1rem);
+  border-top: 1px solid var(--sumi-2);
+}
+.fn-notes__head {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.25rem 2rem;
+}
+.fn-notes__label { font-size: var(--step--1); font-weight: 700; line-height: 1.3; color: var(--shu-ink); }
+.fn-notes__foot { font-size: var(--step--1); line-height: 1.4; color: var(--sumi-3); }
+.fn-note { position: relative; display: grid; gap: 0.5rem; align-content: start; }
+.fn-note + .fn-note::before {               /* hairline column rules, as in a printed guide */
+  content: ""; position: absolute; top: 0.2rem; bottom: 0.2rem; left: calc(var(--fn-note-gap) / -2);
+  border-left: 1px solid var(--sumi-5);
+}
+.fn-note__t { font-size: var(--step-1); color: var(--sumi-2); }
+.fn-note p { font-size: clamp(0.94rem, 0.88rem + 0.18vw, 1.06rem); line-height: 1.64; }
+
+/* ── Wide: map left, komorebi right, notes across ─────────────────────────── */
+@media (min-width: 75em) {
+  .fn-map { grid-column: 1 / span 8; }
+  .fn-komorebi { grid-column: 9 / -1; }
+}
+
+/* ── Medium and narrow ────────────────────────────────────────────────────── */
+@media (max-width: 74.99em) {
+  .fn-notes { grid-template-columns: repeat(3, minmax(0, 1fr)); row-gap: 1.6rem; }
+  .fn-note:nth-of-type(3n + 1)::before { display: none; }
+  .fn-komorebi { max-width: 44rem; }
+}
+@media (max-width: 47.99em) {
+  .fn-notes { grid-template-columns: minmax(0, 1fr); row-gap: 1.25rem; }
+  .fn-note + .fn-note::before { display: none; }
+  .fn-note + .fn-note { border-top: 1px solid var(--sumi-5); padding-top: 1.1rem; }
+  .fn-shade { width: 100vw; }
+}
+
+/* A small map can't carry its labels: keep the shape, the route and big numbered stops, and list the
+   stops beneath it. */
+@container fnmap (max-width: 40rem) {
+  .fnm-lbl, .fnm-city__t, .fnm-sub-t, .fnm-sea-en, .fnm-tick, .fnm-inset__t, .fnm-isle, .fnm-proj, .fnm-fuji__t { display: none; }
+  .fnm-sea { font-size: 26px; }
+  .fnm-stop__dot { transform: scale(1.9); transform-box: fill-box; transform-origin: center; }
+  .fn-stops { display: grid; }
+}

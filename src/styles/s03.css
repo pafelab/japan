@@ -1,0 +1,306 @@
+/* S03 旅 Traverse — owned by the S03 build (spec §4.4, R4, R5, R10, R11, §7).
+   Two finished layouts from one DOM:
+   · row (the CSS default: touch, small windows, reduced motion, no JS) — a native scroll-snap row of cards;
+   · rail (.is-rail, added by the core on fine pointers with room) — four full-bleed cards, then the sign portal.
+   GSAP owns the transforms of .track, .card__media and the Osaka .card__stage: no CSS transforms on them. */
+
+.s03 { background: var(--washi); color: var(--sumi-1); }
+.s03 .track { position: relative; z-index: 0; }
+.s03 .card {
+  container: s03card / size;              /* card-relative units (cqw/cqh) size everything inside */
+  isolation: isolate;
+  background: var(--sumi-2);
+  --scrim: var(--sumi-1);
+}
+.s03 .card__media > svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+/* ── Text on the pictures: a vertical kanji column beside the English, caption and GPS ─────────── */
+.s03 .card:not(.card--title) .card__stage::before {   /* scrim under the text, bottom-left */
+  content: ''; position: absolute; inset: 0; z-index: 1; pointer-events: none;
+  background:
+    radial-gradient(ellipse 62% 78% at 0% 100%, color-mix(in srgb, var(--scrim) 78%, transparent) 0%,
+      color-mix(in srgb, var(--scrim) 52%, transparent) 42%, transparent 78%),
+    linear-gradient(to top, color-mix(in srgb, var(--scrim) 34%, transparent), transparent 42%);
+}
+.s03 .card__text {
+  --pad: clamp(1.25rem, 6cqw, 7rem);
+  position: absolute; z-index: 3; left: var(--pad); bottom: clamp(1.25rem, 9cqh, 6.5rem);
+  width: min(33rem, 100cqw - 2 * var(--pad));
+  display: grid; grid-template-columns: auto 1fr; grid-template-rows: auto auto auto 1fr;
+  column-gap: clamp(0.9rem, 1.5cqw, 1.5rem); row-gap: 0.6rem;
+  color: var(--washi);
+  text-shadow: 0 1px 14px color-mix(in srgb, var(--scrim) 55%, transparent);
+}
+.s03 .card__text h3 {
+  grid-area: 1 / 1 / 5 / 3; display: grid; grid-template-columns: subgrid; grid-template-rows: subgrid;
+  color: inherit; font-weight: 700;
+}
+.s03 .card__kanji {
+  grid-area: 1 / 1 / 5 / 2; align-self: start;
+  writing-mode: vertical-rl; text-orientation: upright;
+  font-size: clamp(2.4rem, 7.4cqh, 5.4rem); line-height: 1; letter-spacing: 0.08em;
+  padding-right: clamp(0.8rem, 1.4cqw, 1.4rem);
+  border-right: 1px solid color-mix(in srgb, currentColor 42%, transparent);
+}
+.s03 .card__en { grid-area: 1 / 2; font-size: clamp(1.8rem, 4.8cqh, 3.5rem); line-height: 1.02; letter-spacing: -0.01em; }
+.s03 .card__caption { grid-area: 2 / 2; font-size: var(--step-0); line-height: 1.55; max-width: 29rem; text-wrap: pretty; }
+.s03 .card__caption i { font-style: italic; }
+.s03 .card__gps {
+  grid-area: 3 / 2; justify-self: start; align-self: start; margin-top: 0.2rem;
+  font-family: var(--font-led); font-size: clamp(0.95rem, 2cqh, 1.2rem); line-height: 1.2; letter-spacing: 0.06em;
+  white-space: nowrap; font-variant-numeric: tabular-nums;
+  padding: 0.28em 0.65em 0.2em; border-radius: 3px;
+  color: var(--shinonome);
+  background: color-mix(in srgb, var(--yoru) 74%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--shinonome) 24%, transparent);
+  text-shadow: 0 0 0.4em color-mix(in srgb, var(--shinonome) 55%, transparent);
+}
+
+/* Focus: an inset ring drawn above the picture (the card is full-bleed on the rail, so an outer ring
+   would be clipped). */
+.s03 .card::after {
+  content: ''; position: absolute; inset: 10px; z-index: 6; pointer-events: none; border-radius: 4px;
+}
+.s03 .card:focus-visible { outline: none; box-shadow: var(--card-shadow, none); }
+.s03 .card:focus-visible::after {
+  outline: 3px solid var(--washi); outline-offset: 0;
+  box-shadow: 0 0 0 6px color-mix(in srgb, var(--sumi-1) 60%, transparent), inset 0 0 0 3px color-mix(in srgb, var(--sumi-1) 60%, transparent);
+}
+.s03 .card--title:focus-visible::after {
+  outline-color: var(--sumi-1);
+  box-shadow: 0 0 0 6px color-mix(in srgb, var(--washi) 80%, transparent);
+}
+
+/* ── 1 · Title card on washi (the seam from the Field Notes) ──────────────────────────────────── */
+.s03 .card--title { background: var(--washi); color: var(--sumi-1); }
+.s03 .title {
+  position: absolute; z-index: 2; left: max(clamp(1.5rem, 9cqw, 11rem), 50cqw - 44rem); top: 50%; translate: 0 -46%;
+  display: grid; grid-template-columns: auto auto; grid-template-rows: 1fr auto auto;
+  column-gap: clamp(1.25rem, 3.4cqw, 3.75rem);
+}
+.s03 .title__h { grid-area: 1 / 1 / 4 / 3; display: grid; grid-template-columns: subgrid; grid-template-rows: subgrid; }
+.s03 .title__kanji {
+  grid-area: 1 / 1 / 4 / 2; align-self: end;
+  display: flex; flex-direction: column; align-items: center;
+  font-size: clamp(7rem, 40cqh, 27rem); line-height: 0.9; color: var(--sumi-2);
+}
+.s03 .title__yomi {
+  font-family: var(--font-body); font-weight: 500; font-size: max(0.9rem, 0.07em); letter-spacing: 0.42em;
+  margin: 0 0 0.4em 0.42em; color: var(--sumi-3); line-height: 1;
+}
+.s03 .title__en {
+  grid-area: 1 / 2; align-self: end;
+  font-size: clamp(2.8rem, 11.5cqh, 8.4rem); line-height: 0.95; letter-spacing: -0.015em; color: var(--sumi-2);
+}
+.s03 .title__sub {
+  grid-area: 2 / 2; margin-top: clamp(0.6rem, 1.8cqh, 1.2rem);
+  font-size: var(--step-1); line-height: 1.4; color: var(--sumi-3);
+}
+
+/* the tiny line diagram: local rail in sumi, the Shinkansen leg in vermilion */
+.s03 .line {
+  grid-area: 3 / 2; list-style: none; margin: clamp(1.25rem, 4.2cqh, 2.75rem) 0 0.4rem; padding: 0;
+  display: grid; grid-template-columns: repeat(4, minmax(5.5rem, 7.5rem));
+  font-size: 0.82rem; line-height: 1.3; color: var(--sumi-3);
+}
+.s03 .line__stop { position: relative; display: flex; flex-direction: column; gap: 0.1rem; padding-top: 1.45rem; }
+.s03 .line__stop::before {                          /* the station */
+  content: ''; position: absolute; z-index: 1; left: 0; top: 0.1rem; width: 0.85rem; height: 0.85rem;
+  border-radius: 50%; background: var(--washi); box-shadow: inset 0 0 0 2px var(--sumi-2);
+}
+.s03 .line__stop::after {                           /* the track to the next station */
+  content: ''; position: absolute; left: 0.42rem; width: 100%; top: 0.44rem; height: 2px; background: var(--sumi-2);
+}
+.s03 .line__stop:first-child::before { background: var(--shu); box-shadow: inset 0 0 0 2px var(--shu); }
+.s03 .line__stop:nth-child(3)::after {
+  top: 0.36rem; height: 4px; background: var(--shu);
+  -webkit-mask: linear-gradient(90deg, #000 70%, transparent); mask: linear-gradient(90deg, #000 70%, transparent);
+}
+.s03 .line__stop:last-child::after { display: none; }
+.s03 .line__stop--next::before { box-shadow: inset 0 0 0 2px var(--shu); }
+.s03 .line__ja { font-family: var(--font-display); font-weight: 700; font-size: 1.1rem; line-height: 1.2; color: var(--sumi-2); }
+.s03 .line__en { font-weight: 500; color: var(--sumi-2); }
+.s03 .line__when { font-size: 0.78rem; }
+.s03 .line__stop--next .line__when { color: var(--shu-ink); }
+
+.s03 .title__cue {
+  position: absolute; z-index: 2; right: clamp(1.25rem, 6cqw, 7rem); bottom: clamp(1.25rem, 9cqh, 6.5rem);
+  display: flex; align-items: center; gap: 0.7rem; font-size: var(--step--1); color: var(--sumi-3);
+}
+.s03 .title__cue::before { content: ''; width: clamp(2rem, 6cqw, 5rem); height: 1px; background: var(--sumi-4); }
+.s03 .title__arrow { font-size: 1.1em; }
+.s03.is-rail .title__cue-row, .s03:not(.is-rail) .title__cue-rail { display: none; }
+.s03 .card--title .card__media > svg { opacity: 1; }
+
+/* ── 2 · Arashiyama: komorebi (spec R5) — still at tier 1, drifting at tier ≥ 2 with motion on ─── */
+.s03 .card--kyoto { background: #8FA088; --scrim: #1F2A22; }
+.s03 .komorebi { position: absolute; inset: 0; pointer-events: none; mix-blend-mode: screen; opacity: 0.85; }
+.s03 .komorebi__sheet { position: absolute; inset: 0; width: 100%; height: 100%; }
+html[data-motion="on"]:is([data-tier="2"], [data-tier="3"]) .s03 .komorebi.loop .komorebi__sheet--a {
+  animation: s03-dapple-a 11s ease-in-out infinite alternate;
+}
+html[data-motion="on"]:is([data-tier="2"], [data-tier="3"]) .s03 .komorebi.loop .komorebi__sheet--b {
+  animation: s03-dapple-b 17s ease-in-out -6s infinite alternate;
+}
+@keyframes s03-dapple-a { 0% { translate: -0.5% 0.3%; opacity: 1; } 50% { opacity: 0.72; } 100% { translate: 0.6% -0.2%; opacity: 0.95; } }
+@keyframes s03-dapple-b { 0% { translate: 0.4% -0.2%; opacity: 0.55; } 50% { opacity: 1; } 100% { translate: -0.5% 0.3%; opacity: 0.8; } }
+
+/* ── 3 · Nara: the deer who bows back (spec R11; src/scenes/s03.js) ─────────────────────────────── */
+.s03 .card--nara { background: #C7B489; --scrim: #2A2117; }
+.s03 .deer {
+  position: absolute; z-index: 2; right: 10cqw; bottom: 4cqh; height: 46cqh; aspect-ratio: 500 / 380;
+  margin: 0; padding: 0; border: 0; border-radius: 1rem; background: none;
+  color: var(--sumi-1); cursor: pointer; -webkit-tap-highlight-color: transparent;
+}
+.s03 .deer__art { width: 100%; height: 100%; max-width: none; }
+.s03 .deer__head { transform-box: view-box; transform-origin: 150px 172px; }
+.s03 .deer.is-bowed .deer__head { transform: rotate(-34deg); }
+.s03 .deer__ear--near { transform-box: view-box; transform-origin: 100px 72px; }
+html[data-motion="on"] .s03 .deer__ear--near { transition: rotate 0.45s var(--ease-expressive); }
+html[data-motion="on"] .s03 .deer:hover .deer__ear--near { rotate: -12deg; }
+.s03 .deer__said {
+  position: absolute; z-index: 4; right: 9cqw; bottom: calc(4cqh + 46cqh + 0.75rem); margin: 0;
+  padding: 0.45rem 0.95rem; border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--washi) 94%, transparent); color: var(--sumi-1);
+  font-size: var(--step--1); line-height: 1.4; white-space: nowrap;
+  box-shadow: 0 8px 28px -12px color-mix(in srgb, var(--sumi-1) 55%, transparent);
+  opacity: 0; transition: opacity var(--dur-reveal) var(--ease-expressive);
+}
+.s03 .deer__said:empty { padding: 0; box-shadow: none; }
+.s03 .deer__said.is-shown { opacity: 1; }
+html[data-motion="off"] .s03 .deer__said { transition: none; }
+
+/* ── 4 · Dōtonbori: the hanging neon sign the portal flies into ────────────────────────────────
+   .card__sign keeps the contract box (58% / 30% / 14% × 22%, cover ≈ 9.3× at 16:9). The drawn sign
+   overflows it upward and downward; the box itself (the part the zoom lands in) is the unlit glass
+   between the crest and the word, flat --bloom, so the bloom seam takes over without a join. */
+.s03 .card--osaka { background: var(--kon); --scrim: #070B14; }
+.s03 .card__sign { position: absolute; left: 58%; top: 30%; width: 14%; height: 22%; z-index: 2; pointer-events: none; }
+.s03 .sign { position: absolute; left: 0; right: 0; top: -80%; bottom: -100%; container-type: size; }
+.s03 .sign__rod {
+  position: absolute; top: -45cqh; height: 46cqh; width: max(2px, 1.6cqw);
+  background: linear-gradient(90deg, var(--sumi-1), var(--sumi-3) 55%, var(--sumi-1));
+}
+.s03 .sign__rod--l { left: 18%; }
+.s03 .sign__rod--r { right: 18%; }
+.s03 .sign__case {
+  position: absolute; inset: 0; border-radius: 3.5cqw; background: var(--bloom);
+  box-shadow:
+    0 0 0 1.8cqw var(--sumi-1),
+    0 0 0 calc(1.8cqw + 1px) color-mix(in srgb, var(--magenta) 45%, var(--sumi-1)),
+    0 0 10cqw color-mix(in srgb, var(--magenta) 30%, transparent);
+}
+.s03 .sign__tube {                                   /* a neon border tube inside the case */
+  position: absolute; inset: 4.5cqw; border-radius: 2.5cqw;
+  border: max(1.5px, 1.1cqw) solid color-mix(in srgb, var(--magenta) 28%, var(--neon-white));
+  box-shadow:
+    0 0 1.2cqw var(--magenta), 0 0 3.6cqw color-mix(in srgb, var(--magenta) 65%, transparent),
+    inset 0 0 1.2cqw var(--magenta), inset 0 0 3.6cqw color-mix(in srgb, var(--magenta) 40%, transparent);
+}
+.s03 .sign__crest {                                  /* a shop crest: a warm ring with 灯 (light) */
+  position: absolute; left: 50%; top: 4cqh; translate: -50% 0;
+  width: min(72cqw, 22cqh); aspect-ratio: 1; border-radius: 50%;
+  display: grid; place-items: center;
+  border: max(1.5px, 1.3cqw) solid color-mix(in srgb, var(--shinonome) 40%, var(--neon-white));
+  box-shadow:
+    0 0 1.4cqw var(--shinonome), 0 0 4.5cqw color-mix(in srgb, var(--shinonome) 55%, transparent),
+    inset 0 0 1.4cqw var(--shinonome), inset 0 0 4.5cqw color-mix(in srgb, var(--shinonome) 35%, transparent);
+}
+.s03 .sign__crest-glyph {
+  font-family: var(--font-body); font-weight: 500; font-size: min(40cqw, 12.5cqh); line-height: 1;
+  color: color-mix(in srgb, var(--kin) 22%, var(--neon-white));
+  text-shadow: 0 0 0.04em var(--neon-white), 0 0 0.12em var(--kin), 0 0 0.35em var(--shinonome);
+}
+.s03 .sign__glass {       /* unlit glass = exactly the .card__sign box (the sign spans it −80%…+180%): flat bloom */
+  position: absolute; left: 0; right: 0; top: calc(100% * 0.8 / 2.8); bottom: calc(100% / 2.8); z-index: 1;
+  background: var(--bloom);
+  border-block: max(1px, 0.7cqw) solid color-mix(in srgb, var(--magenta) 55%, var(--bloom));
+  box-shadow: 0 -1px 2cqw -1cqw var(--magenta), 0 1px 2cqw -1cqw var(--magenta);
+}
+.s03 .sign__word {
+  position: absolute; left: 50%; top: 66cqh; translate: -50% 0;
+  writing-mode: vertical-rl; text-orientation: upright;
+  font-family: var(--font-body); font-weight: 500; font-size: min(52cqw, 13.5cqh); line-height: 1; letter-spacing: 0.1em;
+  color: color-mix(in srgb, var(--magenta) 16%, var(--neon-white));
+  text-shadow: 0 0 0.03em var(--neon-white), 0 0 0.1em var(--magenta), 0 0 0.28em var(--magenta),
+    0 0 0.6em color-mix(in srgb, var(--magenta) 60%, transparent);
+}
+
+/* ── Speed readout (rail only; the core fades it in during the portal) ──────────────────────────── */
+.s03 .speed {
+  position: absolute; z-index: 3; right: clamp(1.25rem, 4cqw, 4.5rem); bottom: clamp(1.25rem, 7svh, 4.5rem);
+  display: grid; grid-template-columns: auto auto; align-items: baseline; column-gap: 0.55rem;
+  padding: 0.75rem 1.05rem 0.7rem; border-radius: 6px;
+  font-family: var(--font-led); line-height: 1; color: var(--shinonome);
+  background: color-mix(in srgb, var(--yoru) 84%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--neon-grey) 22%, transparent), 0 10px 40px -16px var(--yoru);
+}
+.s03:not(.is-rail) .speed { display: none; }
+.s03 .speed__line { grid-column: 1 / -1; margin-bottom: 0.55rem; font-size: 0.78rem; letter-spacing: 0.04em; color: var(--neon-grey); }
+.s03 .speed__value {
+  position: relative; min-width: 3ch; text-align: right;
+  font-size: clamp(2.6rem, 7.4svh, 4.8rem); letter-spacing: 0.04em;
+  text-shadow: 0 0 0.12em color-mix(in srgb, var(--shinonome) 65%, transparent), 0 0 0.4em color-mix(in srgb, var(--shinonome) 35%, transparent);
+}
+.s03 .speed__value::before {                          /* unlit LED segments behind the digits */
+  content: '888'; position: absolute; inset: 0; z-index: -1; text-align: right;
+  color: color-mix(in srgb, var(--shinonome) 6%, transparent); text-shadow: none;
+}
+.s03 .speed__unit { font-size: 1.05rem; color: color-mix(in srgb, var(--shinonome) 75%, var(--neon-grey)); }
+.s03 .bloom { z-index: 2; }
+
+/* ── Rail mode ─────────────────────────────────────────────────────────────────────────────────── */
+.s03.is-rail .card { border-radius: 0; }
+
+/* ── Row mode (default) ────────────────────────────────────────────────────────────────────────── */
+.s03:not(.is-rail) {
+  padding-block: clamp(3.5rem, 10svh, 7rem) clamp(4.5rem, 14svh, 9rem);
+  background: linear-gradient(in oklab, var(--washi) 0 64%, var(--bloom) 100%);
+}
+.s03:not(.is-rail) .track {
+  padding: 0.5rem var(--gutter) 1.5rem; scroll-padding-inline: var(--gutter);
+  scrollbar-width: thin; scrollbar-color: var(--sumi-4) transparent;
+}
+.s03:not(.is-rail) .card {
+  height: min(72svh, 40rem); border-radius: 6px;
+  --card-shadow: 0 22px 48px -28px color-mix(in srgb, var(--sumi-1) 60%, transparent);
+  box-shadow: var(--card-shadow);
+}
+.s03:not(.is-rail) .card:first-child { margin-inline-start: auto; }
+.s03:not(.is-rail) .card:last-child { margin-inline-end: auto; }
+.s03:not(.is-rail) .card--title {
+  --card-shadow: inset 0 0 0 1px var(--sumi-5), 0 22px 48px -30px color-mix(in srgb, var(--sumi-1) 40%, transparent);
+}
+
+/* ── Portrait cards (the row on phones and narrow windows) ─────────────────────────────────────── */
+@container s03card (aspect-ratio < 1) {
+  .s03 .card__text {
+    --pad: 1.25rem; bottom: 1.35rem; width: auto; right: var(--pad);
+  }
+  .s03 .card__kanji { font-size: clamp(2.1rem, 7cqh, 3.2rem); }
+  .s03 .card__en { font-size: clamp(1.6rem, 5cqh, 2.4rem); }
+  .s03 .card__caption { font-size: var(--step--1); }
+  .s03 .card:not(.card--title) .card__stage::before {
+    background: linear-gradient(to top, color-mix(in srgb, var(--scrim) 82%, transparent) 0%,
+      color-mix(in srgb, var(--scrim) 55%, transparent) 30%, transparent 58%);
+  }
+
+  .s03 .title { left: 1.5rem; right: 1.5rem; top: 1.75rem; translate: none; grid-template-columns: 1fr; grid-template-rows: auto auto auto auto; }
+  .s03 .title__h { grid-area: 1 / 1 / 3 / 2; }
+  .s03 .title__kanji { grid-area: 1 / 1; align-self: start; align-items: flex-start; font-size: min(40cqw, 26cqh); }
+  .s03 .title__yomi { margin-left: 0.25em; }
+  .s03 .title__en { grid-area: 2 / 1; font-size: min(15cqw, 3.4rem); margin-top: 0.1em; }
+  .s03 .title__sub { grid-area: 3 / 1; font-size: var(--step-0); }
+  .s03 .line { grid-area: 4 / 1; grid-template-columns: 1fr; margin-top: 1.4rem; }
+  .s03 .line__stop { flex-direction: row; flex-wrap: wrap; align-items: baseline; column-gap: 0.45rem; padding: 0 0 0.9rem 1.6rem; }
+  .s03 .line__stop::before { top: 0.3rem; }
+  .s03 .line__stop::after { left: 0.36rem; top: 0.9rem; width: 2px; height: 100%; }
+  .s03 .line__stop:nth-child(3)::after { left: 0.3rem; top: 0.9rem; width: 4px; height: 100%;
+    -webkit-mask: linear-gradient(#000 70%, transparent); mask: linear-gradient(#000 70%, transparent); }
+  .s03 .line__when { flex-basis: 100%; }
+  .s03 .title__cue { left: 1.5rem; right: auto; bottom: 1.35rem; }
+
+  .s03 .deer { right: 4cqw; bottom: 25cqh; height: 23cqh; }
+  .s03 .deer__said { right: 4cqw; bottom: calc(25cqh + 23cqh + 0.5rem); }
+  .s03 .card--title .card__media { -webkit-mask: linear-gradient(transparent 38%, #000 82%); mask: linear-gradient(transparent 38%, #000 82%); }
+}

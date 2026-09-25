@@ -1,0 +1,353 @@
+/* Komorebi & Neon · HUD (storyboard §2.3, §6, §7)
+   One small pill fixed at the top: the piece's seal (home) · scene nav · motion + sound toggles, with the
+   reading progress drawn along its lower edge. The core sets, on .hud:
+     data-mode="paper|night"   paper = sumi ink on translucent washi · night = neon-white on translucent yoru
+     --progress (0–1)          drives the hairline (CSS only)
+   and aria-current="location" on the active nav link (marked with 傍点 emphasis dots, as in Japanese type).
+   Contrast never depends on the art: blurred glass where supported, near-solid paper or night elsewhere.
+   Widths: all labels from 88em · the current scene's label only from 36em · tategaki kanji on phones. */
+
+.hud {
+  /* paper mode */
+  --hud-ink: var(--sumi-1);
+  --hud-muted: var(--sumi-3);
+  --hud-bg: color-mix(in srgb, var(--washi) 80%, transparent);
+  --hud-bg-solid: color-mix(in srgb, var(--washi) 96%, transparent);
+  --hud-edge: color-mix(in srgb, var(--sumi-1) 12%, transparent);
+  --hud-rule: color-mix(in srgb, var(--sumi-1) 16%, transparent);
+  --hud-chip: color-mix(in srgb, var(--sumi-1) 7%, transparent);
+  --hud-chip-hover: color-mix(in srgb, var(--sumi-1) 5%, transparent);
+  --hud-accent: var(--shu);
+  --hud-focus: var(--sumi-1);
+  --hud-halo: var(--washi);
+  --hud-shadow: 0 12px 32px -20px rgb(20 19 18 / 0.55), inset 0 1px 0 0 rgb(255 255 255 / 0.55);
+  --hud-glow: 0 0 0 0 transparent;
+  --hud-seal-glow: 0 0 0 0 transparent;
+
+  --hud-ctl: 2.25rem;                     /* control height; 44px on coarse pointers */
+  --hud-pad: 0.25rem;
+  --hud-gap: 0.0625rem;
+  --hud-seal: 1.625rem;
+  --hud-ease: var(--ease-expressive);
+
+  position: fixed;
+  z-index: var(--z-hud);
+  top: max(0.75rem, env(safe-area-inset-top));
+  left: 0;
+  right: 0;
+  width: fit-content;
+  max-width: calc(100% - 1rem);
+  margin-inline: auto;
+  display: flex;
+  align-items: center;
+  gap: var(--hud-gap);
+  padding: var(--hud-pad);
+  border: 1px solid var(--hud-edge);
+  border-radius: var(--radius-pill);
+  background: var(--hud-bg-solid);
+  box-shadow: var(--hud-shadow);
+  color: var(--hud-ink);
+  font-family: var(--font-body);
+  font-size: 1rem;
+  line-height: 1;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    background-color var(--dur-micro) var(--hud-ease),
+    border-color var(--dur-micro) var(--hud-ease),
+    box-shadow var(--dur-micro) var(--hud-ease),
+    color var(--dur-micro) var(--hud-ease);
+}
+@supports ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
+  .hud {
+    background: var(--hud-bg);
+    -webkit-backdrop-filter: blur(16px) saturate(1.35);
+    backdrop-filter: blur(16px) saturate(1.35);
+  }
+}
+
+.hud[data-mode="night"] {
+  --hud-ink: var(--neon-white);
+  --hud-muted: color-mix(in srgb, var(--neon-grey) 68%, var(--neon-white));
+  --hud-bg: color-mix(in srgb, var(--yoru) 80%, transparent);
+  --hud-bg-solid: color-mix(in srgb, var(--yoru) 95%, transparent);
+  --hud-edge: color-mix(in srgb, var(--neon-white) 13%, transparent);
+  --hud-rule: color-mix(in srgb, var(--neon-white) 18%, transparent);
+  --hud-chip: color-mix(in srgb, var(--neon-white) 11%, transparent);
+  --hud-chip-hover: color-mix(in srgb, var(--neon-white) 7%, transparent);
+  --hud-accent: var(--magenta);
+  --hud-focus: var(--cyan);
+  --hud-halo: var(--yoru);
+  --hud-shadow: 0 14px 36px -18px rgb(0 0 0 / 0.8), inset 0 1px 0 0 rgb(242 244 248 / 0.07);
+  --hud-glow: 0 0 6px 0 rgb(255 0 85 / 0.8);
+  --hud-seal-glow: 0 0 14px 0 rgb(217 56 30 / 0.6);
+}
+
+/* ── Shared control shape ───────────────────────────────────────────────── */
+.hud__home,
+.hud__nav a,
+.hud__toggle {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--hud-ctl);
+  border-radius: var(--radius-pill);
+  color: var(--hud-muted);
+  text-decoration: none;
+  white-space: nowrap;
+  transition:
+    color var(--dur-micro) var(--hud-ease),
+    background-color var(--dur-micro) var(--hud-ease);
+}
+.hud :focus-visible {
+  outline: 2px solid var(--hud-focus);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 5px var(--hud-halo);
+  border-radius: var(--radius-pill);
+}
+@media (hover: hover) {
+  .hud__home:hover,
+  .hud__nav a:hover,
+  .hud__toggle:hover { color: var(--hud-ink); background-color: var(--hud-chip-hover); }
+}
+
+/* ── Home: the piece's seal (落款), stamped as on a print ──────────────────── */
+.hud__home {
+  gap: 0.55rem;
+  padding: 0 0.7rem 0 calc((var(--hud-ctl) - var(--hud-seal)) / 2);
+  color: var(--hud-ink);
+}
+.hud__seal {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: var(--hud-seal);
+  height: var(--hud-seal);
+  border-radius: 0.3rem;
+  background: var(--shu-ink);
+  box-shadow: var(--hud-seal-glow), inset 0 0 0 1.5px rgb(245 243 237 / 0.28);
+  color: var(--washi);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.02rem;
+  line-height: 1;
+  transition: box-shadow var(--dur-micro) var(--hud-ease);
+}
+.hud__wordmark {
+  display: none;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.95rem;
+  letter-spacing: 0.01em;
+}
+.hud__amp { color: var(--hud-accent); font-weight: 400; }
+.hud[data-mode="night"] .hud__amp { color: color-mix(in srgb, var(--magenta) 72%, var(--neon-white)); }
+
+.hud__rule {
+  flex: none;
+  width: 1px;
+  height: 1.125rem;
+  margin-inline: 0.25rem;
+  background: var(--hud-rule);
+  transition: background-color var(--dur-micro) var(--hud-ease);
+}
+
+/* ── Scene nav: kanji + English ──────────────────────────────────────────── */
+.hud__nav { min-width: 0; }
+.hud__nav ol {
+  display: flex;
+  align-items: center;
+  gap: var(--hud-gap);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.hud__nav a { padding: 0 0.62rem; }
+.hud__kanji {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.97rem;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  /* every kanji reserves room for its emphasis dots (transparent until active) and balances it below,
+     so the glyphs stay centred and nothing moves when the scene changes */
+  -webkit-text-emphasis: filled dot transparent;
+  text-emphasis: filled dot transparent;
+  -webkit-text-emphasis-position: over right;
+  text-emphasis-position: over right;
+  padding-bottom: 0.5em;
+}
+.hud__label {
+  display: inline-grid;
+  grid-template-columns: 1fr;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  line-height: 1;
+}
+.hud__label > span {
+  min-width: 0;
+  padding: 0.25em 0 0.25em 0.4rem;       /* the block padding keeps descenders inside the clip */
+  margin-block: -0.25em;
+}
+.hud__nav a[aria-current] { color: var(--hud-ink); }
+.hud__nav a[aria-current] .hud__kanji {   /* 傍点: emphasis dots over the active scene's kanji */
+  -webkit-text-emphasis-color: var(--hud-accent);
+  text-emphasis-color: var(--hud-accent);
+}
+
+/* ── Toggles ───────────────────────────────────────────────────────────── */
+.hud__toggles {
+  display: flex;
+  align-items: center;
+  gap: 0.125rem;
+}
+.hud:not(.is-live) .hud__toggles,                                /* no JavaScript: nothing to toggle */
+.hud:not(.is-live) .hud__nav + .hud__rule { display: none; }
+.hud__toggle {
+  gap: 0.45rem;
+  margin: 0;
+  padding: 0 0.85rem 0 0.62rem;
+  border: 0;
+  background: transparent;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+.hud__toggle[aria-pressed="true"] { color: var(--hud-ink); background-color: var(--hud-chip); }
+.hud__toggle-state {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  min-width: 2.35em;                      /* "on" and "off" take the same room: no jiggle */
+  margin-left: -0.1rem;
+  color: var(--hud-muted);
+  font-weight: 400;
+}
+.hud__toggle-state::before {              /* a small status light: lit in the accent when on, unlit when off */
+  content: "";
+  flex: none;
+  width: 0.34rem;
+  height: 0.34rem;
+  border-radius: 50%;
+  background: color-mix(in srgb, currentColor 45%, transparent);
+  transition: background-color var(--dur-micro) var(--hud-ease), box-shadow var(--dur-micro) var(--hud-ease);
+}
+.hud__toggle[aria-pressed="true"] .hud__toggle-state { color: var(--hud-ink); font-weight: 500; }
+.hud__toggle[aria-pressed="true"] .hud__toggle-state::before {
+  background: var(--hud-accent);
+  box-shadow: var(--hud-glow);
+}
+
+.hud__icon {
+  flex: none;
+  width: 1.25rem;
+  height: 1.25rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  overflow: visible;
+}
+.hud__icon path { transition: transform var(--dur-reveal) var(--hud-ease), opacity var(--dur-reveal) var(--hud-ease); }
+/* motion: a wave that flattens into a still line */
+.hud__icon--motion path { transform-box: fill-box; transform-origin: center; transform: scaleY(0.1); }
+[aria-pressed="true"] > .hud__icon--motion path { transform: none; }
+/* sound: a speaker whose waves open when on; a small cross when off */
+.hud__wave { transform-box: view-box; transform-origin: 10px 10px; opacity: 0; transform: scale(0.55); }
+.hud__mute { transform-box: fill-box; transform-origin: center; }
+[aria-pressed="true"] > .hud__icon--sound .hud__wave { opacity: 1; transform: none; }
+[aria-pressed="true"] > .hud__icon--sound .hud__mute { opacity: 0; transform: scale(0.4); }
+html[data-motion="on"] [aria-pressed="true"] > .hud__icon--sound .hud__wave--2 {
+  animation: hud-wave 2.6s ease-in-out 0.7s infinite;              /* .loop: paused with motion off */
+}
+@keyframes hud-wave { 0%, 100% { opacity: 1; } 50% { opacity: 0.25; } }
+
+/* ── Progress: a hairline filling the pill's lower edge, driven by --progress (0–1) ── */
+.hud__progress {
+  position: absolute;
+  left: 1.35rem;
+  right: 1.35rem;
+  bottom: -1px;
+  height: 2px;
+  pointer-events: none;
+}
+.hud__bar {
+  position: absolute;
+  inset: 0;
+  border-radius: 2px;
+  background: var(--hud-accent);
+  box-shadow: var(--hud-glow);
+  transform-origin: 0 50%;
+  transform: scaleX(clamp(0, var(--progress, 0), 1));
+  transition: background-color var(--dur-micro) var(--hud-ease);
+}
+
+/* ── Input decides target size; width decides how much is shown ──────────── */
+@media (pointer: coarse) {
+  .hud { --hud-ctl: 2.75rem; --hud-pad: 0.125rem; }
+}
+@media (min-width: 100em) {
+  .hud__wordmark { display: inline; }
+}
+/* below 88em only the scene you're in shows its English name; the others keep theirs for assistive
+   tech (clipped, never display:none) */
+@media (max-width: 87.99em) {
+  .hud__nav a { padding: 0 0.58rem; }
+  .hud__label {
+    grid-template-columns: 0fr;
+    opacity: 0;
+    transition:
+      grid-template-columns var(--dur-reveal) var(--hud-ease),
+      opacity var(--dur-reveal) var(--hud-ease);
+  }
+  .hud__label > span { overflow: hidden; }
+  .hud__nav a[aria-current] .hud__label { grid-template-columns: 1fr; opacity: 1; }
+}
+@media (max-width: 47.99em) {
+  .hud { top: max(0.5rem, env(safe-area-inset-top)); }
+  .hud__toggle-label,
+  .hud__toggle-state {
+    position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; border: 0;
+    overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap;
+  }
+  .hud__toggle { justify-content: center; min-width: var(--hud-ctl); padding: 0; }
+  .hud__home { padding-inline: calc((var(--hud-ctl) - var(--hud-seal)) / 2); }
+  .hud__rule { margin-inline: 0.15rem; }
+}
+/* phones: each scene is a tiny tategaki column, so all seven sit beside the toggles */
+@media (max-width: 35.99em) {
+  .hud { --hud-gap: 0; --hud-seal: 1.5rem; }
+  .hud__nav a { justify-content: center; min-width: 1.625rem; padding: 0 0.12rem; }
+  .hud__kanji {                           /* in tategaki the dots sit to the right, as in print */
+    writing-mode: vertical-rl;
+    text-orientation: upright;
+    font-size: 0.84rem;
+    letter-spacing: 0.02em;
+    padding: 0 0 0 0.5em;
+  }
+  .hud__label {
+    position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; border: 0;
+    overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap;
+  }
+  .hud__progress { left: 1.1rem; right: 1.1rem; }
+}
+/* small phones (375 and below): the dots keep their column, the balancing space goes */
+@media (max-width: 24.99em) {
+  .hud__nav a { min-width: 1.5rem; padding: 0 0.06rem; }
+  .hud__kanji { padding-left: 0.2em; }
+  .hud__rule { margin-inline: 0.1rem; }
+}
+@media (max-width: 21.99em) {
+  .hud__home, .hud__home + .hud__rule { display: none; }
+}
+
+/* motion off (the toggle or the system setting): state changes still show, nothing glides */
+html[data-motion="off"] .hud__label,
+html[data-motion="off"] .hud__icon path { transition: none; }
+@media (prefers-reduced-motion: reduce) {
+  .hud__label, .hud__icon path { transition: none; }
+}
+@media (forced-colors: active) {
+  .hud { border-color: CanvasText; }
+  .hud__bar { background: Highlight; }
+  .hud__toggle[aria-pressed="true"] { outline: 1px solid ButtonText; }
+}

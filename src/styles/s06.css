@@ -1,0 +1,279 @@
+/* S06 富士 First Light — Lake Kawaguchi from the north shore, first light the next day (spec §4.7, R15, R16).
+   Structure (contract CSS in base.css): .finale > .s06 is sticky; S05's washi deckle lifts off it.
+   The core animates .fuji / .reflection (scale), .akafuji (opacity) and .ui > * (blur-in): none of them
+   gets a CSS transform here. Static state = settled, Akafuji on, UI visible.
+
+   Geometry: the art is drawn in units of a thousandth of the frame height (--u), so the mountain keeps
+   its proportions at every aspect ratio. The shoreline sits at 64% of the frame; the lake fills 64–100%.
+   --fuji-x is where the summit stands across the frame; .fuji and .reflection both scale about the
+   shoreline point under it, so the mirror stays locked to the mountain during the settle. */
+
+/* Contract §5.4 says .s06 is sticky, but base.css's `.finale > section { position: relative }` (0,1,1)
+   outranks the contract's `.s06` (0,1,0) rule, so the curtain never had anything to reveal. Re-assert it. */
+.finale > .s06 { position: sticky; top: 0; }
+
+.s06 {
+  --u: 0.1svh;
+  --shore: 64%;
+  --fuji-x: calc(50% - 13svh);
+  --sun-x: 8.5%;
+  --sun-y: 45%;
+  --sun-d: 5.2svh;
+  isolation: isolate;
+  color: var(--sumi-1);
+  /* no background: over the lake the WebGL stage (tier ≥ 2) shows through from behind the page */
+}
+
+.s06__view { position: absolute; inset: 0; }
+
+/* ── Sky: a shinonome dawn, warm toward the sun (east, frame-left), cool toward the west ───────── */
+.s06 .sky {
+  position: absolute;
+  inset: 0 0 calc(100% - var(--shore)) 0;          /* stops exactly at the shoreline (the lake may be WebGL) */
+  overflow: clip;
+  background:
+    radial-gradient(70svh 34svh at var(--sun-x) calc(var(--sun-y) / 0.64), rgb(252 232 204 / 0.95), rgb(248 204 170 / 0.55) 38%, rgb(241 144 114 / 0) 72%),
+    radial-gradient(60% 22% at 92% 92%, rgb(233 176 176 / 0.45), rgb(233 176 176 / 0) 70%),
+    linear-gradient(90deg, rgb(245 214 190 / 0.5), rgb(245 214 190 / 0) 45%, rgb(168 176 204 / 0.22)),
+    linear-gradient(180deg, #A9B4C8 0%, #BDBFCE 22%, #D6C3C6 44%, #EBC4B8 64%, #F4C3A6 84%, #F6CCA8 100%);
+}
+.s06 .clouds { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+.s06 .sun {
+  position: absolute;
+  left: var(--sun-x);
+  top: calc(var(--sun-y) / 0.64);                  /* the sky box is 64% of the frame tall */
+  width: var(--sun-d);
+  aspect-ratio: 1;
+  margin: calc(var(--sun-d) / -2) 0 0 calc(var(--sun-d) / -2);
+  border-radius: 50%;
+  background: radial-gradient(circle at 45% 42%, #FFFDF7 0 38%, #FFF3DC 62%, #FCE0B6 100%);
+  box-shadow: 0 0 0 0.25svh rgb(255 248 232 / 0.7), 0 0 1.6svh 0.5svh rgb(255 238 208 / 0.95), 0 0 6svh 2svh rgb(250 210 164 / 0.6);
+}
+/* The halo breathes (R16): 9 s, scale amplitude 4.5% — no rays. Paused whenever motion is off. */
+.s06 .halo {
+  position: absolute;
+  left: var(--sun-x);
+  top: calc(var(--sun-y) / 0.64);
+  width: 64svh;
+  aspect-ratio: 1;
+  margin: -32svh 0 0 -32svh;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgb(255 242 218 / 0.9), rgb(252 222 186 / 0.55) 20%, rgb(246 184 148 / 0.24) 50%, rgb(241 144 114 / 0) 100%);
+  animation: s06-breathe 9s ease-in-out infinite alternate;
+}
+@keyframes s06-breathe {
+  from { transform: scale(1); opacity: 0.9; }
+  to   { transform: scale(1.045); opacity: 1; }
+}
+
+/* ── The mountain (scaled by the settle about the shoreline under the summit) ──────────────────── */
+.s06 .fuji {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: var(--shore);
+  transform-origin: var(--fuji-x) 100%;
+}
+.s06 .fuji svg {
+  position: absolute;
+  bottom: 0;
+  left: calc(var(--fuji-x) - 2000 * var(--u));
+  width: calc(4000 * var(--u));
+  height: calc(640 * var(--u));
+  max-width: none;
+}
+
+/* ── The lake: 64–100%. The reflection's top edge is the shoreline; it scales about that edge ─────── */
+.s06 .lake {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: var(--shore);
+  bottom: 0;
+  overflow: clip;
+}
+.s06 .reflection {
+  position: absolute;
+  top: 0;
+  left: calc(var(--fuji-x) - 2000 * var(--u));
+  width: calc(4000 * var(--u));
+  height: calc(560 * var(--u));                    /* ≥ the lake at every --u; the frame clips the rest */
+  transform-origin: 50% 0;
+}
+.s06 .reflection svg { display: block; width: 100%; height: 100%; max-width: none; }
+
+/* the sun's path on the water, straight below the sun */
+.s06 .glint {
+  position: absolute;
+  top: 7%;
+  left: var(--sun-x);
+  width: 7svh;
+  height: 44%;
+  margin-left: -3.5svh;
+  background: radial-gradient(50% 60% at 50% 20%, rgb(255 236 206 / 0.55), rgb(255 236 206 / 0));
+}
+.s06 .glint svg { width: 100%; height: 100%; }
+
+/* ── Foreground: the north bank, silver grass backlit by the low sun ──────────────────────────── */
+.s06 .shore { position: absolute; inset: 0; pointer-events: none; }
+.s06 .shore__bank { position: absolute; bottom: -0.5svh; left: -1svh; width: 36svh; height: 31svh; }
+.s06 .shore__bank svg { width: 100%; height: 100%; }
+.s06 .shore__boat {
+  position: absolute;
+  left: calc(var(--sun-x) + 9svh);
+  top: 72%;
+  width: 7.5svh;
+}
+
+/* ── UI: title, one line, the route CTA and a way back (≤ 5 children; the core blurs them in) ─────── */
+.s06 .ui {
+  position: absolute;
+  z-index: 2;
+  top: clamp(5.5rem, 14%, 11rem);
+  left: max(calc(var(--fuji-x) + 42svh), 60%);
+  right: max(var(--gutter), calc(100% - var(--fuji-x) - 42svh - 34rem));
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem 1.5rem;
+}
+.s06 .ui > h2, .s06 .ui > p { flex: 1 0 100%; }
+
+.s06 h2 {
+  color: var(--sumi-2);
+  font-weight: 700;
+  line-height: 1;
+  font-size: clamp(1.7rem, min(3.2vw, 5svh), 3.4rem);
+}
+.s06__kanji {
+  display: block;
+  font-size: 2.3em;
+  letter-spacing: 0.04em;
+  margin: 0 0 0.12em -0.04em;
+}
+.s06__en { display: block; font-weight: 500; letter-spacing: 0.005em; }
+
+.s06__line {
+  max-width: 30rem;
+  color: var(--sumi-2);
+  font-size: clamp(1rem, 0.9rem + 0.35vw, 1.22rem);
+  line-height: 1.65;
+  text-wrap: pretty;
+}
+
+.s06 .cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55em;
+  min-height: 3rem;
+  padding: 0.7em 1.25em 0.7em 1.5em;
+  border-radius: var(--radius-pill);
+  background: var(--shu-ink);
+  color: var(--washi);
+  font-weight: 500;
+  font-size: var(--step-0);
+  letter-spacing: 0.01em;
+  text-decoration: none;
+  box-shadow: 0 1px 0 rgb(20 19 18 / 0.18), 0 14px 30px -14px rgb(204 53 28 / 0.75);
+  transition: background-color var(--dur-micro) ease, box-shadow var(--dur-micro) ease;
+}
+.s06 .cta:hover { background: color-mix(in srgb, var(--shu-ink) 86%, var(--sumi-1)); }
+.s06 .cta:focus-visible {
+  outline: 2px solid var(--sumi-1);
+  outline-offset: 3px;
+  box-shadow: 0 0 0 6px rgb(245 243 237 / 0.85);
+}
+.cta__arrow { flex: none; transition: translate var(--dur-micro) var(--ease-expressive); }
+.s06 .cta:hover .cta__arrow { translate: 3px 0; }
+
+.s06 .back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+  min-height: 2.75rem;
+  color: var(--sumi-2);
+  font-size: var(--step--1);
+  font-weight: 500;
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--sumi-2) 45%, transparent);
+  text-underline-offset: 0.25em;
+}
+.s06 .back:hover { text-decoration-color: currentColor; }
+.s06 .back:focus-visible { outline-color: var(--sumi-1); }
+
+/* ── Credits: a small strip of washi pasted on the print ──────────────────────────────────────── */
+.s06 .credits {
+  position: absolute;
+  z-index: 2;
+  right: var(--gutter);
+  bottom: calc(var(--gutter) * 0.8);
+  width: min(29rem, calc(100% - 2 * var(--gutter)));
+  padding: 0.85rem 3.4rem 0.9rem 1.15rem;
+  background: var(--washi);
+  color: var(--sumi-3);
+  font-size: 0.8rem;
+  line-height: 1.5;
+  box-shadow: 0 1px 2px rgb(20 19 18 / 0.18), 0 16px 34px -20px rgb(20 19 18 / 0.7);
+  /* a faintly deckled left and right edge */
+  clip-path: polygon(0.3% 2%, 1% 0, 26% 0.6%, 58% 0, 99.2% 0.8%, 100% 9%, 99.5% 31%, 100% 62%, 99.4% 100%,
+                     63% 99.3%, 31% 100%, 0.7% 99.4%, 0 78%, 0.5% 47%, 0 20%);
+}
+.credits__title {
+  margin: 0 0 0.35rem;
+  color: var(--sumi-2);
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  font-weight: 700;
+  line-height: 1.4;
+}
+.credits__title [lang="ja"] { font-family: var(--font-display); margin-right: 0.3em; }
+.credits__list { margin: 0; padding: 0; list-style: none; }
+.credits__list li + li { margin-top: 0.12rem; }
+.credits__seal {
+  position: absolute;
+  right: 1rem;
+  top: 0.95rem;
+  display: grid;
+  place-items: center;
+  width: 1.75rem;
+  aspect-ratio: 1;
+  border-radius: 3px;
+  background: var(--shu-ink);
+  color: var(--washi);
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+/* ── Frames narrower than 3:2 (tablets, phones): a smaller mountain, the UI across the top sky ───── */
+@media (max-aspect-ratio: 3/2) {
+  .s06 { --u: 0.085svh; --fuji-x: 50%; --sun-x: 11%; --sun-y: 41%; }
+  .s06 .ui {
+    top: clamp(4.75rem, 11%, 8rem);
+    left: var(--gutter);
+    right: var(--gutter);
+    gap: 0.75rem 1.25rem;
+  }
+  .s06 h2 { font-size: clamp(1.5rem, min(4.6vw, 4.2svh), 2.6rem); }
+  .s06__kanji, .s06__en { display: inline; }
+  .s06__kanji { font-size: 1.5em; margin: 0 0.25em 0 0; }
+  .s06__line { max-width: 36rem; }
+}
+@media (max-aspect-ratio: 1/1) {
+  .s06 { --u: 0.068svh; --sun-x: 13%; --sun-y: 47%; --sun-d: 4.4svh; }
+  .s06 .shore__bank { width: 25svh; height: 21.5svh; }
+  .s06 .shore__boat { top: 71%; width: 6svh; }
+}
+@media (max-width: 40rem) {
+  .s06 .ui { top: calc(4.25rem + 1svh); gap: 0.6rem 1rem; }
+  .s06__line { font-size: 0.95rem; line-height: 1.55; }
+  .s06 .cta { min-height: 2.75rem; padding: 0.55em 1.05em 0.55em 1.25em; font-size: 0.95rem; }
+  .s06 .credits { padding: 0.65rem 2.9rem 0.7rem 0.9rem; font-size: 0.72rem; line-height: 1.45; bottom: 0.75rem; }
+  .s06 .credits__title { font-size: 0.74rem; margin-bottom: 0.2rem; }
+  .credits__list li { display: inline; }
+  .credits__list li + li::before { content: " · "; color: var(--sumi-4); }
+  .credits__seal { width: 1.5rem; top: 0.7rem; right: 0.75rem; font-size: 0.8rem; }
+}

@@ -1,0 +1,94 @@
+/* Komorebi & Neon · base + the DOM/CSS contract (storyboard §5.4).
+   The static page IS the design: every final state below is the CSS default, and the JavaScript only
+   sets "from" states when motion is allowed. Scene files may style freely but must not override the
+   contract rules marked CONTRACT. */
+
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--washi);
+  color: var(--sumi-1);
+  font-family: var(--font-body);
+  font-size: var(--step-0);
+  line-height: 1.7;
+  font-kerning: normal;
+  -webkit-font-smoothing: antialiased;
+}
+img, svg, video, canvas { display: block; max-width: 100%; }
+svg { overflow: visible; }
+h1, h2, h3, h4 { font-family: var(--font-display); font-weight: 700; line-height: 1.2; color: var(--sumi-2); margin: 0; }
+p { margin: 0; }
+a { color: var(--shu-ink); text-underline-offset: 0.18em; text-decoration-thickness: 1px; }
+a:hover { text-decoration-thickness: 2px; }
+button { font: inherit; color: inherit; }
+[lang="ja"] { word-break: auto-phrase; line-break: strict; }
+
+/* Focus is visible in both paper and night modes: a ring in the current colour plus a contrasting halo */
+:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 3px;
+  box-shadow: 0 0 0 5px color-mix(in srgb, var(--washi) 70%, transparent);
+  border-radius: 2px;
+}
+
+.visually-hidden {
+  position: absolute !important; width: 1px; height: 1px; margin: -1px; padding: 0; border: 0;
+  overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap;
+}
+
+/* Skip links: jump to the interlude and to the credits (§6) */
+.skip {
+  position: fixed; top: 0.75rem; left: 0.75rem; z-index: calc(var(--z-hud) + 1);
+  padding: 0.6rem 1rem; border-radius: var(--radius-pill);
+  background: var(--sumi-1); color: var(--washi); text-decoration: none; font-weight: 500;
+  transform: translateY(-200%); transition: transform var(--dur-micro) var(--ease-expressive);
+}
+.skip:focus-visible { transform: none; }
+.skip + .skip { left: auto; right: 0.75rem; }
+
+/* One fixed, full-viewport canvas behind the DOM (§5.2). The stage shows through only where it has
+   replaced a picture (a scene gets .gl-ready and hides its DOM image). */
+#gl { position: fixed; inset: 0; width: 100%; height: 100%; z-index: var(--z-gl); pointer-events: none; }
+main.page { position: relative; z-index: var(--z-page); }
+
+/* ── CONTRACT (§5.4) ─────────────────────────────────────────────────────────────── */
+main.page { overflow-x: clip; }           /* clip, not hidden: hidden breaks sticky and pins */
+:where(main.page > section) { position: relative; }   /* :where = zero specificity, so .s06's sticky wins */
+.seam { position: absolute; inset: 0; opacity: 0; visibility: hidden; pointer-events: none; }
+.s01, .s02, .s04 { height: 100vh; height: 100svh; overflow: clip; }
+
+/* seam sheets: one viewport + 35svh, flat top, feathered bottom (translated by JS, never faded) */
+.s02 .fog, .s04 .bloom { bottom: auto; height: calc(100% + 35svh);
+  background: linear-gradient(var(--c) 0 calc(100% - 35svh), transparent 100%); }
+.s02 .fog { --c: var(--fog); }  .s04 .bloom { --c: var(--bloom); }
+.s01 .fog { background: var(--fog); }
+.s03 .bloom { background: var(--bloom); }
+
+/* S03: the default is a native swipe row; JS adds .is-rail for the pinned track */
+.s03 { overflow: clip; container-type: inline-size; }
+.s03 .track { display: flex; gap: 1rem; overflow-x: auto; scroll-snap-type: x mandatory; overscroll-behavior-x: contain; }
+.s03 .card { flex: 0 0 min(86vw, 28rem); scroll-snap-align: center; position: relative; overflow: clip; }
+.s03.is-rail { height: 100vh; height: 100svh; }
+.s03.is-rail .track { overflow: visible; scroll-snap-type: none; gap: 0; width: max-content; height: 100%; }
+.s03.is-rail .card { flex: 0 0 100cqw; height: 100%; }   /* cqw = section width, scrollbar excluded */
+.card__stage { position: absolute; inset: 0; }             /* scaled by the portal */
+.card__media { position: absolute; top: 0; bottom: 0; left: -15%; width: 130%; }  /* translated by parallax */
+
+/* S05 lies over S06; S06 sticks underneath and is revealed by the page's own scroll */
+.s05 { position: relative; z-index: 1; min-height: 200svh; }
+.finale { position: relative; z-index: 0; height: 250svh; margin-top: -100svh; }
+.s06 { position: sticky; top: 0; height: 100svh; overflow: clip; }
+/* ── end CONTRACT ────────────────────────────────────────────────────────────────── */
+
+/* Loops (rain, halo breathing, komorebi drift, billboard) run only while motion is on. The HUD toggle
+   and prefers-reduced-motion both set data-motion="off" (§6: pause, stop, hide). */
+html[data-motion="off"] .loop,
+html[data-motion="off"] .loop * { animation-play-state: paused !important; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; }
+}
+
+/* Paper texture helper for washi surfaces (never under running text) */
+.washi-tex { position: absolute; inset: 0; pointer-events: none; background-image: var(--washi-texture);
+  background-size: 512px; mix-blend-mode: multiply; opacity: 0.065; }

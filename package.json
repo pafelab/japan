@@ -1,0 +1,30 @@
+{
+  "name": "komorebi-neon",
+  "private": true,
+  "version": "2.0.0",
+  "description": "Komorebi & Neon · 木漏れ日とネオン — one day of Japanese light, told in a single scroll.",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "node tools/fonts.mjs --check && vite build",
+    "preview": "vite preview --port 4173 --strictPort",
+    "test": "playwright test",
+    "shot": "node tools/shot.mjs",
+    "fonts": "node tools/fonts.mjs"
+  },
+  "dependencies": {
+    "@fontsource/dela-gothic-one": "^5.3.0",
+    "@fontsource/dotgothic16": "^5.3.0",
+    "@fontsource/shippori-mincho": "^5.3.0",
+    "@fontsource/zen-kaku-gothic-new": "^5.3.0",
+    "detect-gpu": "^5.0.70",
+    "gsap": "^3.15.0",
+    "lenis": "^1.3.26",
+    "three": "^0.186.1"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
+    "@playwright/test": "^1.63.0",
+    "vite": "^8.3.1"
+  }
+}

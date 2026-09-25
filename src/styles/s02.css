@@ -1,0 +1,184 @@
+/* S02 静寂 Echoes of Stillness · Ryōan-ji from the veranda, an overcast morning.
+   Layers (≤ 5 full-bleed): garden illustration · text on the page plane · fog seam sheet · shoji.
+   The core animates .garden__img (pan), .haiku .line (rise), .fog and .shoji: no CSS transforms on
+   those. .s02 and .garden stay transparent: with WebGL ready, the canvas replaces .garden__img. */
+
+.s02 {
+  isolation: isolate;
+  color: var(--sumi-1);
+  --s02-wood-ink: var(--washi);                                       /* text set on the veranda boards */
+  --s02-kumiko: color-mix(in srgb, var(--sumi-5) 48%, var(--washi));   /* shoji lattice: light and fine */
+  --s02-stile: color-mix(in srgb, var(--sumi-5) 70%, var(--kin) 18%);  /* pale hinoki frame */
+}
+
+/* ── the garden ─────────────────────────────────────────────────────────────────── */
+.s02 .garden { position: absolute; inset: 0; z-index: 0; overflow: clip; }
+.s02 .garden__img {                   /* 112% wide and left-aligned: the −6% walk never shows its edge */
+  position: absolute; top: 0; left: 0;
+  width: 112%; height: 100%;
+}
+.s02 .garden__img > svg { display: block; width: 100%; height: 100%; }
+html[data-motion="on"] .s02 .garden__img { will-change: transform; }   /* a pure translate: raster once */
+
+/* ── the haiku: tategaki in the right third, "written in the sky" as on a print ─────────── */
+/* The whole block lives above the gravel (sky, trees, wall), so the stones below stay clear of text. */
+.s02 .poem {
+  position: absolute; z-index: 1; margin: 0;
+  top: max(5rem, 8.5svh);
+  right: clamp(1.25rem, 4vw, 6.5rem);   /* hugs the right edge: the rear stone groups keep the air to its left */
+  display: grid; justify-items: center;
+  gap: clamp(0.6rem, 1.5svh, 1.1rem);
+}
+.s02 .poem__veil {                    /* a soft washi mist gathered behind the text (legibility over the trees) */
+  position: absolute; z-index: -1;
+  inset: -5svh -4.5rem -7svh;
+  background:                         /* both ellipses stay inside the box, so no edge is ever clipped */
+    radial-gradient(ellipse 47% 13% at 50% 84%, color-mix(in srgb, var(--washi) 78%, transparent),
+                    color-mix(in srgb, var(--washi) 66%, transparent) 60%, transparent),
+    radial-gradient(closest-side, color-mix(in srgb, var(--washi) 80%, transparent) 55%,
+                    color-mix(in srgb, var(--washi) 50%, transparent) 78%, transparent);
+  pointer-events: none;
+}
+.s02 .haiku {
+  margin: 0;
+  writing-mode: vertical-rl;
+  text-orientation: upright;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(1.5rem, min(3.4svh, 2.9vw), 3.2rem);
+  line-height: 1.75;                  /* column pitch */
+  letter-spacing: 0.1em;
+  color: var(--sumi-1);
+  font-feature-settings: "vert" 1;
+}
+.s02 .haiku .line { margin: 0; }
+/* chirashi-gaki: the three lines start at stepped heights, as a poem is brushed on a card */
+.s02 .haiku .line:nth-child(2) { padding-top: 0.45em; }
+.s02 .haiku .line:nth-child(3) { padding-top: 1.8em; }
+
+.s02 .poem__cap { display: grid; justify-items: center; gap: 0.35rem; text-align: center; }
+.s02 .gloss {
+  font-family: var(--font-display);
+  font-size: clamp(1rem, 1.7svh, 1.3rem);
+  line-height: 1.4;
+  color: var(--sumi-2);
+}
+.s02 .gloss span { display: block; }
+.s02 .poem__credit {
+  font-size: clamp(0.78rem, 1.2svh, 0.88rem);
+  line-height: 1.45;
+  color: var(--sumi-2);
+  white-space: nowrap;
+}
+.s02 .poem__source { display: block; }
+.s02 .poem__credit cite { font-style: italic; }
+
+/* ── lower third on the veranda boards: title, the stones sentence, the counter ────────────── */
+.s02 .s02__foot {
+  position: absolute; z-index: 1;
+  left: var(--gutter); right: var(--gutter);
+  bottom: clamp(1rem, 3.6svh, 2.75rem);
+  display: flex; align-items: flex-end; justify-content: space-between;
+  gap: 1rem 3rem;
+  color: var(--s02-wood-ink);
+}
+.s02 .s02__intro { display: flex; align-items: flex-end; gap: clamp(1rem, 2.2vw, 2.25rem); min-width: 0; }
+.s02 .s02__title {
+  flex: none;
+  display: flex; align-items: baseline; gap: 0.45em;
+  font-size: clamp(1.55rem, 0.95rem + 1.6vw, 2.75rem);
+  line-height: 1.05;
+  color: var(--s02-wood-ink);
+  white-space: nowrap;
+}
+.s02 .s02__kanji { font-size: 1.22em; letter-spacing: 0.06em; }
+.s02 .s02__en { font-weight: 400; }
+.s02 .s02__text {
+  max-width: 35rem;
+  padding-left: clamp(1rem, 2.2vw, 2.25rem);
+  border-left: 1px solid color-mix(in srgb, var(--washi) 32%, transparent);
+  font-size: var(--step--1);
+  line-height: 1.6;
+  color: color-mix(in srgb, var(--washi) 90%, transparent);
+  text-wrap: pretty;
+}
+.s02 .stones { flex: none; color: var(--s02-wood-ink); }
+.s02 .stones__meter {
+  display: grid; grid-template-columns: auto auto; align-items: baseline; justify-content: end;
+  column-gap: 0.4em; text-align: right;
+}
+.s02 .stones__count {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 1.4rem + 1.6vw, 3rem);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.s02 .stones__of {
+  font-family: var(--font-display);
+  font-size: var(--step-1);
+  color: color-mix(in srgb, var(--washi) 80%, transparent);
+}
+.s02 .stones__label {
+  grid-column: 1 / -1;
+  font-size: var(--step--1);
+  color: color-mix(in srgb, var(--washi) 80%, transparent);
+}
+
+/* ── seams ──────────────────────────────────────────────────────────────────────── */
+.s02 .fog { z-index: 2; }             /* contract sheet: only its stacking is set here */
+
+/* The shoji: flat washi with a light, fine kumiko lattice. It slides in from the right with its
+   leading stile first; closed, it covers the frame and the lattice fades out toward the bottom, so the
+   paper runs on into the interlude's washi without a join. */
+.s02 .shoji {                        /* no outer shadow: parked at xPercent 100 it would bleed into the frame */
+  z-index: 3;
+  background-color: var(--washi);
+}
+.s02 .shoji::before,
+.s02 .shoji::after { content: ""; position: absolute; inset: 0; pointer-events: none; }
+.s02 .shoji::before {                 /* kumiko + the leading stile */
+  background:
+    linear-gradient(90deg, var(--s02-stile) 0 0.55rem, color-mix(in srgb, var(--sumi-4) 35%, var(--washi)) 0.55rem calc(0.55rem + 1px),
+                    color-mix(in srgb, var(--sumi-5) 30%, transparent) calc(0.55rem + 1px), transparent 2.5rem) 0 0 / 100% 100% no-repeat,
+    linear-gradient(90deg, var(--s02-kumiko) 0 2px, transparent 0) 0 0 / calc(100% / 5) 100%,
+    linear-gradient(var(--s02-kumiko) 0 1.5px, transparent 0) 0 0 / 100% calc(100% / 8);
+  -webkit-mask: linear-gradient(#000 0 52%, transparent 94%);
+          mask: linear-gradient(#000 0 52%, transparent 94%);
+}
+.s02 .shoji::after {                  /* kōzo fibre, faint; also fades out before the seam */
+  background-image: var(--washi-texture);
+  background-size: 512px;
+  mix-blend-mode: multiply;
+  opacity: 0.06;
+  -webkit-mask: linear-gradient(#000 0 45%, transparent 90%);
+          mask: linear-gradient(#000 0 45%, transparent 90%);
+}
+
+/* ── mid-size screens: stack the lower third ─────────────────────────────────────────── */
+@media (max-width: 68em) {
+  .s02 .s02__intro { flex-direction: column; align-items: flex-start; gap: 0.6rem; }
+  .s02 .s02__text { padding-left: 0; border-left: 0; max-width: 32rem; }
+}
+
+/* ── phones and narrow windows ───────────────────────────────────────────────────────── */
+@media (max-width: 40em) {
+  .s02 .poem { top: max(5rem, 9svh); right: var(--gutter); gap: 0.6rem; }
+  .s02 .poem__veil { inset: -2.5rem -1.5rem -1.5rem -2.5rem; }
+  .s02 .haiku { font-size: clamp(1.4rem, min(3.6svh, 7.2vw), 2.1rem); }
+  .s02 .gloss { font-size: 0.95rem; }
+  .s02 .poem__credit { font-size: 0.74rem; white-space: normal; max-width: 11rem; }
+  .s02 .s02__foot { flex-direction: column-reverse; align-items: stretch; gap: 0.9rem; }
+  .s02 .s02__foot::before {           /* the veranda deepens into a scrim so the caption keeps its ground */
+    content: ""; position: absolute; z-index: -1;
+    left: calc(-1 * var(--gutter)); right: calc(-1 * var(--gutter));
+    top: -3.5rem; bottom: calc(-1 * clamp(1rem, 3.6svh, 2.75rem));
+    background: linear-gradient(transparent, color-mix(in srgb, var(--sumi-1) 72%, transparent) 3.5rem);
+    pointer-events: none;
+  }
+  .s02 .s02__title { white-space: normal; flex-wrap: wrap; row-gap: 0.1em; }
+  .s02 .s02__text { font-size: 0.9rem; line-height: 1.55; }
+  .s02 .stones__meter { justify-content: start; text-align: left; grid-template-columns: auto auto 1fr; }
+  .s02 .stones__label { grid-column: auto; padding-left: 0.4em; }
+  .s02 .stones__count { font-size: 1.9rem; }
+  .s02 .shoji::before { background-size: 100% 100%, calc(100% / 3) 100%, 100% calc(100% / 9); }
+}

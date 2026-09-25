@@ -1,0 +1,62 @@
+/* Komorebi & Neon · design tokens (storyboard §2). One source for every colour, face and motion value.
+   Contrast ratios are WCAG 2.x, computed in §2.1. Never set vermilion small text in --shu: use --shu-ink. */
+:root {
+  /* Day pigments on washi — sumi's five tones (墨に五彩), warm like oil-soot ink */
+  --washi: #F5F3ED;       /* 和紙 day paper surface */
+  --sumi-1: #141312;      /* 焦 body text on washi 16.72:1 */
+  --sumi-2: #2B2926;      /* 濃 headings 13.07:1 */
+  --sumi-3: #4A463F;      /* 重 captions, meta 8.45:1 */
+  --sumi-4: #8C877E;      /* 淡 rules, icons, disabled — non-text only 3.22:1 */
+  --sumi-5: #CFCAC0;      /* 清 fog shadows, faint rules */
+  --shu: #D9381E;         /* 朱 vermilion — display type ≥24px and graphics only (4.17:1) */
+  --shu-ink: #CC351C;     /* text-safe vermilion: links, small text, CTA fill (4.62:1 both ways) */
+  --matcha: #3E4E42;      /* secondary text, UI 7.97:1 */
+  --ishi: #B8B1A3;        /* 石 Kyoto / Nara stone surfaces, non-text */
+  --ai: #1E3354;          /* 藍 indigo: dusk sky, links on paper 11.42:1 */
+  --kon: #0F1A2B;         /* 紺 deep navy: night sky before the neon */
+  --shinonome: #F19072;   /* 東雲 dawn: S01 and S06 skies, accents (8.51:1 on yoru) */
+  --kin: #C8A15A;         /* 金 gold: kintsugi, S05 highlights (7.69:1 on sumi-1) */
+
+  /* Night emission on yoru — a cool black, never shared with the warm day blacks */
+  --yoru: #08090C;        /* 夜 S04 background */
+  --neon-white: #F2F4F8;  /* night body text 18.08:1 */
+  --neon-grey: #8D95A3;   /* night meta, captions 6.60:1 */
+  --cyan: #00F0FF;        /* signage, accents 14.13:1 */
+  --magenta: #FF0055;     /* signage, accents 5.10:1 */
+
+  /* Seam frames: flat, full-bleed colours that hide each handoff (§3.2) */
+  --bloom: #1A0710;       /* S03 → S04 magenta-black */
+  --fog: #E6E9EA;         /* S01 → S02 sea fog */
+
+  /* Type (§2.2): two families with Japanese coverage, plus two optional display faces */
+  --font-display: 'Shippori Mincho', 'Hiragino Mincho ProN', 'Yu Mincho', serif;
+  --font-body: 'Zen Kaku Gothic New', 'Hiragino Sans', 'Yu Gothic', system-ui, sans-serif;
+  --font-led: 'DotGothic16', 'Zen Kaku Gothic New', monospace;     /* S03 rail readout only */
+  --font-sign: 'Dela Gothic One', 'Zen Kaku Gothic New', sans-serif; /* S04 sign artwork only */
+
+  --step--1: clamp(0.83rem, 0.8rem + 0.15vw, 0.9rem);
+  --step-0: clamp(1rem, 0.96rem + 0.2vw, 1.125rem);
+  --step-1: clamp(1.25rem, 1.15rem + 0.5vw, 1.5rem);
+  --step-2: clamp(1.6rem, 1.4rem + 1vw, 2.1rem);
+  --step-3: clamp(2rem, 1.6rem + 2vw, 3.2rem);
+  --step-4: clamp(2.6rem, 1.8rem + 4vw, 5.2rem);
+  --step-5: clamp(3.4rem, 2rem + 7vw, 8.5rem);
+
+  /* Motion tokens (§2.4). Scrubbed motion is always ease: 'none' — eases live only inside pinned segments */
+  --ease-expressive: cubic-bezier(0.16, 1, 0.3, 1);   /* GSAP twin: CustomEase 'expressive' */
+  --dur-micro: 150ms;
+  --dur-reveal: 700ms;
+
+  --gutter: clamp(1rem, 0.6rem + 2vw, 2.5rem);
+  --measure: 38rem;
+  --radius-pill: 999px;
+
+  /* Stacking: canvas (WebGL) < page < HUD < dialog */
+  --z-gl: 0;
+  --z-page: 1;
+  --z-hud: 50;
+  --z-dialog: 100;
+
+  /* Washi fibre texture (§2.1): a tiling noise at 5–8% multiply. Never under running text. */
+  --washi-texture: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='512' height='512'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.012 .09' numOctaves='3' seed='7' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .35 0 0 0 0 .32 0 0 0 0 .27 0 0 0 1.4 -.55'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23f)'/%3E%3C/svg%3E");
+}

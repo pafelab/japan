@@ -1,0 +1,166 @@
+/* S01 鳥居 Threshold — the Ōtorii of Itsukushima standing in the sea at dawn (spec §3.3, §4.1, R1–R3).
+   The core (choreography.js) scales .sky/.misen/.torii/.mist about an eye point inside .opening and fades
+   .title; nothing here sets a transform on those. Art is inline SVG drawn in svh units (1 unit = 0.1svh,
+   x measured from the frame centre), so the drawn gate matches .opening on every aspect ratio and stays
+   sharp at 7×. The static state (no JS, reduced motion) is the poster: gate at rest, title visible, no fog. */
+
+.s01 {
+  background: #EFCFC0;                       /* shows only while the sky paints */
+  color: var(--sumi-1);
+  isolation: isolate;
+}
+
+/* ── the four camera planes ─────────────────────────────────────────────────── */
+.s01 .layer { position: absolute; inset: 0; pointer-events: none; }
+.s01 .layer svg {
+  position: absolute; top: 0; left: 50%;
+  height: 100%; max-width: none;            /* base.css caps svg at 100%: the art is wider than the frame */
+}
+.s01 .sky__art, .s01 .misen__art {           /* 400svh wide: covers 4:1 ultrawide at rest */
+  width: 400vh; width: 400svh;
+  margin-left: -200vh; margin-left: -200svh;
+}
+
+/* sky (d = 8): shinonome dawn, cool lilac overhead to peach at the horizon */
+.s01 .sky {
+  background: linear-gradient(180deg,
+    #7E8BAE 0%, #959EBE 11%, #B3B3CD 21%, #D0C9D9 30%, #E2D7DF 38%, #ECDCDB 45%,
+    #F1D8CE 52%, #F4CDBB 58%, #F3C0A6 63%, #F0B397 67%, #EEAD91 100%);
+}
+
+/* Mt. Misen (d = 6): the sea is drawn in the SVG; this gradient only backs ultra-wide frames beyond it */
+.s01 .misen {
+  background: linear-gradient(180deg, transparent 65%, #EFD3C8 65%, #E2CACB 70%, #C9C0CC 81%, #A6AABF 100%);
+}
+
+/* gate (d = 1). No will-change here, ever: Chrome would freeze the raster scale and blur the gate at 7×. */
+.s01 .torii__gate { position: absolute; inset: 0; }
+.s01 .torii__art {
+  width: 120vh; width: 120svh;               /* viewBox -600..600 × 0..1000 */
+  margin-left: -60vh; margin-left: -60svh;
+}
+/* The measured opening (contract §4): inner faces of the hashira, nuki underside, water line. */
+.s01 .opening {
+  position: absolute;
+  left: calc(50% - 17.5vh); left: calc(50% - 17.5svh);
+  width: 35vh; width: 35svh;
+  top: 36vh; top: 36svh;
+  height: 49vh; height: 49svh;
+  pointer-events: none;
+}
+
+/* near sea mist (d = 0.55): feathered low wisps, mostly transparent, so it dissolves as the camera nears */
+.s01 .mist {
+  --m: 247 240 236;
+  background:
+    radial-gradient(64svh 2.2svh at calc(50% - 70svh) 78svh, rgb(var(--m) / 0.7), rgb(var(--m) / 0) 100%),
+    radial-gradient(40svh 1.3svh at calc(50% - 30svh) 74.5svh, rgb(var(--m) / 0.5), rgb(var(--m) / 0) 100%),
+    radial-gradient(46svh 1.8svh at calc(50% + 50svh) 76svh, rgb(var(--m) / 0.62), rgb(var(--m) / 0) 100%),
+    radial-gradient(34svh 1.1svh at calc(50% + 12svh) 71svh, rgb(var(--m) / 0.45), rgb(var(--m) / 0) 100%),
+    radial-gradient(76svh 2.8svh at calc(50% - 4svh) 84svh, rgb(var(--m) / 0.46), rgb(var(--m) / 0) 100%),
+    radial-gradient(60svh 2.4svh at calc(50% + 96svh) 85svh, rgb(var(--m) / 0.55), rgb(var(--m) / 0) 100%),
+    radial-gradient(62svh 2.6svh at calc(50% - 128svh) 88svh, rgb(var(--m) / 0.5), rgb(var(--m) / 0) 100%),
+    radial-gradient(90svh 3.6svh at calc(50% + 30svh) 94svh, rgb(var(--m) / 0.38), rgb(var(--m) / 0) 100%),
+    linear-gradient(180deg, rgb(var(--m) / 0) 76%, rgb(240 234 234 / 0.26) 89%, rgb(236 233 235 / 0.46) 100%);
+}
+
+/* ── title: to one side of the gate, never over the opening ──────────────────── */
+.s01 .title { margin: 0; }
+.s01 h1.title {
+  position: absolute;
+  right: calc(50% + 43vh); right: calc(50% + 43svh);   /* clear of the sode-bashira and kasagi tips */
+  bottom: 47vh; bottom: 47svh;                          /* sits on the shoreline pines, grows upward */
+  width: max-content;
+  max-width: calc(50% - 43svh - var(--gutter));
+  font-family: var(--font-display);
+  font-weight: 400;
+  color: var(--sumi-1);
+  line-height: 1;
+}
+.s01 .title__en {
+  display: block;
+  /* as large as the free sky beside the gate allows ("Komorebi" ≈ 4.4em wide) */
+  font-size: clamp(2.25rem, min(9.4svh, (50vw - 43svh - var(--gutter)) / 4.6), 7.5rem);
+  line-height: 0.98;
+  letter-spacing: -0.012em;
+}
+.s01 .title__line { display: block; }
+.s01 .title__line + .title__line { padding-left: 0.92em; }
+.s01 .title__amp { color: var(--shu-ink); }
+.s01 .title__ja {
+  display: block;
+  margin-top: 0.85em;
+  font-size: clamp(1.05rem, 2.5svh, 1.85rem);
+  font-weight: 700;
+  letter-spacing: 0.34em;
+  color: var(--sumi-2);
+}
+.s01 .title__sub {
+  display: block;
+  margin-top: 0.55em;
+  font-family: var(--font-body);
+  font-size: clamp(1rem, 2.05svh, 1.45rem);
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  color: var(--sumi-3);
+}
+
+/* scene name + a quiet scroll cue, bottom left over the misty water */
+.s01 .s01__meta {
+  position: absolute;
+  right: calc(50% + 43vh); right: calc(50% + 43svh);
+  bottom: 5.5vh; bottom: 5.5svh;
+  width: max-content;
+  max-width: calc(50% - 43svh - var(--gutter));
+  display: flex; flex-direction: column; gap: 0.4rem;
+  font-size: var(--step--1);
+  line-height: 1.4;
+}
+.s01 .s01__scene {
+  font-family: var(--font-display);
+  font-size: var(--step-1);
+  font-weight: 700;
+  color: var(--sumi-1);
+}
+.s01 .s01__cue { display: flex; align-items: center; gap: 0.8rem; color: var(--sumi-2); }
+.s01 .s01__cue-line {
+  flex: none; width: 3.25rem; height: 1px;
+  background: linear-gradient(90deg, var(--sumi-3) 0 100%) no-repeat,
+              linear-gradient(90deg, transparent, var(--shu) 45% 55%, transparent) no-repeat;
+  background-size: 100% 100%, 40% 100%;
+  background-position: 0 0, -150% 0;
+  animation: s01-cue 3.2s var(--ease-expressive) 1.2s infinite;
+}
+@keyframes s01-cue {
+  0% { background-size: 100% 100%, 40% 100%; background-position: 0 0, -150% 0; }
+  70%, 100% { background-size: 100% 100%, 40% 100%; background-position: 0 0, 250% 0; }
+}
+@media (prefers-reduced-motion: reduce) { .s01 .s01__cue-line { animation: none; } }
+
+/* ── narrow frames (phones, tablets, 4:3): too little sky beside the gate, so the title takes the water band
+      below the gate and the scene name the band above the kasagi ─────────────────────────────────── */
+@media (max-aspect-ratio: 7/5) {
+  .s01 h1.title {
+    bottom: 3.6vh; bottom: 3.6svh;
+    left: var(--gutter); right: var(--gutter);
+    width: auto; max-width: none;
+    text-align: center;
+  }
+  .s01 .title__en { font-size: clamp(1.8rem, min(8vw, 5.2svh), 3.4rem); line-height: 1; }
+  .s01 .title__line { display: inline; }
+  .s01 .title__line + .title__line { padding-left: 0; }
+  .s01 .title__ja { margin-top: 0.55em; font-size: clamp(0.95rem, 4vw, 1.3rem); letter-spacing: 0.3em; }
+  .s01 .title__sub { margin-top: 0.3em; font-size: clamp(0.85rem, 3.6vw, 1.1rem); }
+  .s01 .s01__meta {
+    top: 9.4vh; top: 9.4svh; bottom: auto;
+    left: var(--gutter); right: var(--gutter);
+    width: auto; max-width: none;
+    align-items: center; text-align: center; gap: 0.2rem;
+  }
+  .s01 .s01__scene { font-size: clamp(1.05rem, 4.4vw, 1.35rem); }
+  /* the title lies on the water here: thicken the near mist under it (it fades with the mist layer) */
+  .s01 .mist::after {
+    content: ""; position: absolute; inset: 0;
+    background: linear-gradient(180deg, rgb(246 240 238 / 0) 80%, rgb(246 240 238 / 0.5) 90%, rgb(246 240 238 / 0.62) 100%);
+  }
+}

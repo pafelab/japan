@@ -1,0 +1,11 @@
+/* WebGL stage (T2+). A scene adds .gl-ready to its section after the canvas has drawn its first frame
+   of it, and removes it on dispose; only then is the DOM picture it replaces hidden (§5.2: the DOM is
+   always present and semantic, WebGL only replaces pictures). visibility, not display: layout stays,
+   so the stage can keep measuring the boxes it draws into. */
+.s02.gl-ready .garden__img { visibility: hidden; }
+.s04.gl-ready .rain > * { visibility: hidden; }
+.s06.gl-ready .lake { visibility: hidden; }
+
+/* In the DOM the opaque lake paints over anything of the mountain that overflows below the shoreline;
+   with the lake hidden, clip the mountain there instead, so the canvas lake reads exactly as the DOM. */
+.s06.gl-ready .fuji { clip-path: inset(-300% -300% 0 -300%); }
